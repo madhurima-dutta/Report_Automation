@@ -81,19 +81,46 @@ export default function VesselProcessingApp() {
     for (let i = 0; i < vessels.length; i++) {
       const vessel = vessels[i]
 
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      try {
+        const response = await fetch("http://127.0.0.1:8000/process-vessel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            vessel: vessel,
+            formats: selectedFormats,
+          }),
+        });
 
-      // Mock owner lookup (in real implementation, this would call your Python script)
-      const mockOwners = [
-        "Schoeller - AAL",
-        "Schoeller - Hanse",
-        "Frontline Management",
-        "Maersk Line",
-        "MSC Mediterranean",
-      ]
-      const owner = mockOwners[Math.floor(Math.random() * mockOwners.length)]
+        if (!response.ok) {
+          throw new Error("Backend error");
+        }
 
+        const data = await response.json();
+
+        // Example: your backend should return { owner: "...", message: "..." }
+        const owner = data.owner || "Unknown";
+        const message = data.message || "Files organized successfully";
+
+        // Update results
+        setResults((prev) =>
+          prev.map((result, index) =>
+            index === i
+              ? { ...result, owner, status: "success" as const, message }
+              : result,
+          ),
+        );
+      } catch (err) {
+        console.error("Error:", err);
+        setResults((prev) =>
+          prev.map((result, index) =>
+            index === i
+              ? { ...result, status: "error" as const, message: "Failed to process vessel" }
+              : result,
+          ),
+        );
+      }
       // Update progress
       const newProgress = ((i + 1) / totalVessels) * 100
       setProgress(newProgress)
@@ -102,7 +129,7 @@ export default function VesselProcessingApp() {
       setResults((prev) =>
         prev.map((result, index) =>
           index === i
-            ? { ...result, owner, status: "success" as const, message: "Files organized successfully" }
+            ? { ...result, owner: result.owner, status: "success" as const, message: "Files organized successfully" }
             : result,
         ),
       )

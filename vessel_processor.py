@@ -1,3 +1,10 @@
+import os
+import pandas as pd
+from datetime import datetime
+from PyPDF2 import PdfMerger
+import pythoncom
+import win32com.client as win32
+
 # ---- Dynamic output folders based on current month ----
 base_pdf_folder = r"C:\Users\Madhurima\CSMCY Dropbox\Columbia Control Room\Emissions\Emission Statements\2025\Emission Statements - 2025\PDF"
 base_xls_folder = r"C:\Users\Madhurima\CSMCY Dropbox\Columbia Control Room\Emissions\Emission Statements\2025\Emission Statements - 2025\XLS"
@@ -160,29 +167,47 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
 # ---- Folders ----
 input_folder = r"C:\Users\Madhurima\CSMCY Dropbox\Columbia Control Room\Emissions\Emission Statements\2025\Emission Data - 2025"
 
-# ---- User Input ----
-vessel_input = input("Enter vessel name(s) in BLOCK letters (comma-separated for multiple, e.g. FRONT CHEETAH, AAL BRISBANE): ").strip().upper()
-vessel_names = [name.strip() for name in vessel_input.split(",")]
 
-print("\nSelect the sheets to export:")
-print("1. Reporting Page")
-print("2. EUA")
-print("3. Fuel EU")
-print("4. Backup (saved as Excel)")
-print("5. All (Reporting Page + EUA + Fuel EU + Backup)")
+if __name__ == "__main__":
+    # ---- User Input ----
+    vessel_input = input("Enter vessel name(s) in BLOCK letters (comma-separated for multiple, e.g. FRONT CHEETAH, AAL BRISBANE): ").strip().upper()
+    vessel_names = [name.strip() for name in vessel_input.split(",")]
 
-choice = input("Enter choice numbers (comma separated, e.g. 1,2): ").strip()
+    print("\nSelect the sheets to export:")
+    print("1. Reporting Page")
+    print("2. EUA")
+    print("3. Fuel EU")
+    print("4. Backup (saved as Excel)")
+    print("5. All (Reporting Page + EUA + Fuel EU + Backup)")
 
-# Map choices
-choice_map = {"1": "Reporting Page", "2": "EUA", "3": "Fuel EU", "4": "Backup"}
-if "5" in choice.split(","):
-    selected_sheets = ["Reporting Page", "EUA", "Fuel EU", "Backup"]
-else:
-    selected_sheets = [choice_map[c.strip()] for c in choice.split(",") if c.strip() in choice_map]
+    choice = input("Enter choice numbers (comma separated, e.g. 1,2): ").strip()
 
-if selected_sheets:
+    # Map choices
+    choice_map = {"1": "Reporting Page", "2": "EUA", "3": "Fuel EU", "4": "Backup"}
+    if "5" in choice.split(","):
+        selected_sheets = ["Reporting Page", "EUA", "Fuel EU", "Backup"]
+    else:
+        selected_sheets = [choice_map[c.strip()] for c in choice.split(",") if c.strip() in choice_map]
+
+    if selected_sheets:
+        for vessel_name in vessel_names:
+            print(f"\n--- Processing vessel: {vessel_name} ---")
+            export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, vessel_name, selected_sheets)
+        
+        print(f"\n✅ All {len(vessel_names)} vessel(s) processed successfully!")
+
+def run_vessel_processing(vessel_names=None, selected_sheets=None):
+    """
+    Wrapper to run the vessel processing logic programmatically
+    instead of using manual input().
+    """
+    if not vessel_names:
+        return {"error": "No vessel names provided"}
+    if not selected_sheets:
+        return {"error": "No sheets selected"}
+
     for vessel_name in vessel_names:
         print(f"\n--- Processing vessel: {vessel_name} ---")
         export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, vessel_name, selected_sheets)
-    
-    print(f"\n✅ All {len(vessel_names)} vessel(s) processed successfully!")
+
+    return f"✅ Processed {len(vessel_names)} vessel(s) successfully!"
