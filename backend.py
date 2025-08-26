@@ -9,7 +9,7 @@ app = FastAPI()
 # CORS so frontend (Next.js) can call backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3002"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
