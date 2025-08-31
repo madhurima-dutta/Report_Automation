@@ -5,16 +5,48 @@ from PyPDF2 import PdfMerger
 import pythoncom
 import win32com.client as win32
 
+# ---- Get user home directory dynamically ----
+home_dir = os.path.expanduser("~")
+
 # ---- Dynamic output folders based on current month ----
-base_pdf_folder = r"C:\Users\Madhurima\CSMCY Dropbox\Columbia Control Room\Emissions\Emission Statements\2025\Emission Statements - 2025\PDF"
-base_xls_folder = r"C:\Users\Madhurima\CSMCY Dropbox\Columbia Control Room\Emissions\Emission Statements\2025\Emission Statements - 2025\XLS"
+base_pdf_folder = os.path.join(
+    home_dir,
+    "CSMCY Dropbox",
+    "Columbia Control Room",
+    "Emissions",
+    "Emission Statements",
+    "2025",
+    "Emission Statements - 2025",
+    "PDF"
+)
+
+base_xls_folder = os.path.join(
+    home_dir,
+    "CSMCY Dropbox",
+    "Columbia Control Room",
+    "Emissions",
+    "Emission Statements",
+    "2025",
+    "Emission Statements - 2025",
+    "XLS"
+)
 
 current_month = datetime.now().strftime("%B")  # e.g., "August"
 pdf_output_folder = os.path.join(base_pdf_folder, f"{current_month} - 2025")
 xls_output_folder = os.path.join(base_xls_folder, f"{current_month} - 2025")
 
 # ---- Load vessel-owner mapping ----
-mapping_file = r"C:\Users\Madhurima\Downloads\Vessel and Owner.xlsx"
+mapping_file = os.path.join(
+    home_dir,
+    "CSMCY Dropbox",
+    "Columbia Control Room",
+    "Emissions",
+    "Emission Statements",
+    "2025",
+    "EU Port Data",
+    "Vessel-Owner List",
+    "Vessel and Owner.xlsx"
+)
 mapping_df = pd.read_excel(mapping_file)
 
 # Assuming columns are "Vessel" and "Owner"
@@ -48,7 +80,15 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
     owner_pdf_folder = os.path.join(pdf_output_folder, owner_folder_name)
     owner_xls_folder = os.path.join(xls_output_folder, owner_folder_name)
 
-    secondary_backup_base = r"C:\Users\Madhurima\CSMCY Dropbox\Columbia Control Room\ETS_Commercial Consideration\Fuelink - 2025\August - 2025"
+    # ---- Secondary backup path (dynamic) ----
+    secondary_backup_base = os.path.join(
+        home_dir,
+        "CSMCY Dropbox",
+        "Columbia Control Room",
+        "ETS_Commercial Consideration",
+        "Fuelink - 2025",
+        f"{current_month} - 2025"
+    )
     secondary_backup_folder = os.path.join(secondary_backup_base, owner_folder_name)
 
     os.makedirs(owner_pdf_folder, exist_ok=True)
@@ -74,7 +114,7 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
         if not vessel_file:
             return
 
-        print("✅Folder found")
+        print("✅ Folder found")
         workbook = excel.Workbooks.Open(vessel_file)
 
         # Temporary PDFs to merge later
@@ -107,7 +147,7 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
                     new_wb.SaveAs(output_file)
                     new_wb.SaveAs(secondary_output_file)
                     new_wb.Close(SaveChanges=False)
-                    print("✅Backup saved to both locations")
+                    print("✅ Backup saved to both locations")
 
                 else:
                     temp_pdf = os.path.join(
@@ -123,7 +163,7 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
                         OpenAfterPublish=False
                     )
                     temp_pdfs.append(temp_pdf)
-                    print(f"✅{sheet_name} saved")
+                    print(f"✅ {sheet_name} saved")
 
             except:
                 pass
@@ -132,7 +172,7 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
         if temp_pdfs:
             merged_pdf = os.path.join(
                 owner_pdf_folder,
-                f"{os.path.splitext(os.path.basename(vessel_file))[0]}_MERGED.pdf"
+                f"{os.path.splitext(os.path.basename(vessel_file))[0]}.pdf"
             )
             merger = PdfMerger()
             for pdf in temp_pdfs:
@@ -143,7 +183,7 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
             for pdf in temp_pdfs:
                 os.remove(pdf)
 
-            print("✅All saved")
+            print("✅ All saved")
 
     except:
         pass
@@ -164,8 +204,16 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
         kill_excel_processes()
 
 
-# ---- Folders ----
-input_folder = r"C:\Users\Madhurima\CSMCY Dropbox\Columbia Control Room\Emissions\Emission Statements\2025\Emission Data - 2025"
+# ---- Input folder (dynamic) ----
+input_folder = os.path.join(
+    home_dir,
+    "CSMCY Dropbox",
+    "Columbia Control Room",
+    "Emissions",
+    "Emission Statements",
+    "2025",
+    "Emission Data - 2025"
+)
 
 
 if __name__ == "__main__":
