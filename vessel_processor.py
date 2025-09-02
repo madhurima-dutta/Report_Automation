@@ -154,21 +154,45 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
                     print("✅ Backup saved to both locations")
 
                 else:
-                    temp_pdf = os.path.join(
-                        owner_pdf_folder,
-                        f"__temp_{sheet_name}.pdf"
-                    )
+                    if sheet_name.lower() == "sinokor report":
+                        # Save Sinokor as Excel instead of PDF
+                        sinokor_file = os.path.join(
+                            owner_pdf_folder,
+                            f"{os.path.splitext(os.path.basename(vessel_file))[0]}_{sheet_name}.xlsx"
+                        )
+                        new_wb = excel.Workbooks.Add()
+                        sheet.Copy(Before=new_wb.Sheets(1))
 
-                    sheet.ExportAsFixedFormat(
-                        Type=0,  # xlTypePDF
-                        Filename=temp_pdf,
-                        Quality=0,  # xlQualityStandard
-                        IncludeDocProperties=True,
-                        IgnorePrintAreas=False,
-                        OpenAfterPublish=False
-                    )
-                    temp_pdfs.append(temp_pdf)
-                    print(f"✅ {sheet_name} saved")
+                        for s in list(new_wb.Sheets):
+                            if s.Name != sheet_name:
+                                try:
+                                    s.Delete()
+                                except:
+                                    pass
+
+                        new_wb.SaveAs(sinokor_file)
+                        new_wb.Close(SaveChanges=False)
+                        print("✅ Sinokor Report saved as Excel")
+
+                    else:
+                        # Normal case → export as PDF
+                        temp_pdf = os.path.join(
+                            owner_pdf_folder,
+                            f"__temp_{sheet_name}.pdf"
+                        )
+
+
+                        sheet.ExportAsFixedFormat(
+                            Type=0,  # xlTypePDF
+                            Filename=temp_pdf,
+                            Quality=0,  # xlQualityStandard
+                            IncludeDocProperties=True,
+                            IgnorePrintAreas=False,
+                            OpenAfterPublish=False
+                        )
+                        temp_pdfs.append(temp_pdf)
+                        print(f"✅ {sheet_name} saved")
+
 
             except:
                 pass
@@ -230,15 +254,19 @@ if __name__ == "__main__":
     print("1. Reporting Page")
     print("2. EUA")
     print("3. Fuel EU")
-    print("4. Backup (saved as Excel)")
-    print("5. All (Reporting Page + EUA + Fuel EU + Backup)")
+    print("4. Sinokor Report")
+    print("5. Backup (saved as Excel)")
+    print("6. Consolidated (Reporting Page + EUA + Fuel EU + Backup)")
+    print("7. Consolidated (Reporting Page + EUA + Fuel EU + Backup + Sinokor)")
 
     choice = input("Enter choice numbers (comma separated, e.g. 1,2): ").strip()
 
     # Map choices
-    choice_map = {"1": "Reporting Page", "2": "EUA", "3": "Fuel EU", "4": "Backup"}
-    if "5" in choice.split(","):
+    choice_map = {"1": "Reporting Page", "2": "EUA", "3": "Fuel EU", "4": "Sinokor Report", "5": "Backup"}
+    if "6" in choice.split(","):  # All without Sinokor
         selected_sheets = ["Reporting Page", "EUA", "Fuel EU", "Backup"]
+    elif "7" in choice.split(","):  # All with Sinokor
+        selected_sheets = ["Reporting Page", "EUA", "Fuel EU", "Sinokor Report", "Backup"]
     else:
         selected_sheets = [choice_map[c.strip()] for c in choice.split(",") if c.strip() in choice_map]
 
