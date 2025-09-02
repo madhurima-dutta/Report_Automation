@@ -4,6 +4,7 @@ from datetime import datetime
 from PyPDF2 import PdfMerger
 import pythoncom
 import win32com.client as win32
+from dateutil.relativedelta import relativedelta
 
 # ---- Get user home directory dynamically ----
 home_dir = os.path.expanduser("~")
@@ -31,9 +32,12 @@ base_xls_folder = os.path.join(
     "XLS"
 )
 
-current_month = datetime.now().strftime("%B")  # e.g., "August"
-pdf_output_folder = os.path.join(base_pdf_folder, f"{current_month} - 2025")
-xls_output_folder = os.path.join(base_xls_folder, f"{current_month} - 2025")
+# Get previous month dynamically
+previous_month_date = datetime.now() - relativedelta(months=1)
+previous_month = previous_month_date.strftime("%B")  # e.g., "August"
+
+pdf_output_folder = os.path.join(base_pdf_folder, f"{previous_month} - 2025")
+xls_output_folder = os.path.join(base_xls_folder, f"{previous_month} - 2025")
 
 # ---- Load vessel-owner mapping ----
 mapping_file = os.path.join(
@@ -87,7 +91,7 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
         "Columbia Control Room",
         "ETS_Commercial Consideration",
         "Fuelink - 2025",
-        f"{current_month} - 2025"
+        f"{previous_month} - 2025"
     )
     secondary_backup_folder = os.path.join(secondary_backup_base, owner_folder_name)
 
@@ -154,6 +158,7 @@ def export_vessel_sheets(input_folder, pdf_output_folder, xls_output_folder, ves
                         owner_pdf_folder,
                         f"__temp_{sheet_name}.pdf"
                     )
+
                     sheet.ExportAsFixedFormat(
                         Type=0,  # xlTypePDF
                         Filename=temp_pdf,
